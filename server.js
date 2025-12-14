@@ -35,7 +35,11 @@ app.use('/api', (req, res, next) => {
 
 // Serve frontend - catch-all route for SPA
 app.use((req, res, next) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      next(err);
+    }
+  });
 });
 
 // Global error handler for API routes
@@ -44,8 +48,9 @@ app.use((err, req, res, next) => {
   
   // If request is to API, return JSON error
   if (req.path.startsWith('/api/')) {
+    const isDevelopment = process.env.NODE_ENV !== 'production';
     res.status(err.status || 500).json({ 
-      error: err.message || 'Internal server error' 
+      error: isDevelopment ? (err.message || 'Internal server error') : 'Internal server error'
     });
   } else {
     next(err);

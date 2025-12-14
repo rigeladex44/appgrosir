@@ -25,12 +25,15 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Use default JWT secret if not set (for development only)
-    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+    // Ensure JWT_SECRET is configured
+    if (!process.env.JWT_SECRET) {
+      console.error('JWT_SECRET is not configured! Please set it in environment variables.');
+      return res.status(500).json({ error: 'Server configuration error' });
+    }
 
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
-      jwtSecret,
+      process.env.JWT_SECRET,
       { expiresIn: '24h' }
     );
 
