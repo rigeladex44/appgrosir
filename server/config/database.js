@@ -29,18 +29,19 @@ try {
   const dbError = new Error('Database not initialized');
   db = {
     run: (sql, params, callback) => {
-      if (typeof params === 'function') { callback = params; }
-      if (callback) callback(dbError);
+      const cb = typeof params === 'function' ? params : callback;
+      if (cb) cb(dbError);
     },
     get: (sql, params, callback) => {
-      if (typeof params === 'function') { callback = params; }
-      if (callback) callback(dbError);
+      const cb = typeof params === 'function' ? params : callback;
+      if (cb) cb(dbError);
     },
     all: (sql, params, callback) => {
-      if (typeof params === 'function') { callback = params; }
-      if (callback) callback(dbError);
+      const cb = typeof params === 'function' ? params : callback;
+      if (cb) cb(dbError);
     },
     serialize: (callback) => {
+      // In error state, still execute serialize callback but all operations will fail
       if (callback) callback();
     }
   };

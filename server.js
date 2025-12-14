@@ -43,12 +43,18 @@ app.use('/api', (req, res, next) => {
   
   // Ensure database is initialized
   getDatabase()
-    .then(() => next())
+    .then(() => {
+      if (!res.headersSent) {
+        next();
+      }
+    })
     .catch((err) => {
       console.error('Database error:', err);
-      return res.status(500).json({ 
-        error: 'Database connection error. Please try again later.'
-      });
+      if (!res.headersSent) {
+        return res.status(500).json({ 
+          error: 'Database connection error. Please try again later.'
+        });
+      }
     });
 });
 
