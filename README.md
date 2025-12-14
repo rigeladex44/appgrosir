@@ -58,7 +58,11 @@ A comprehensive web application designed for large wholesale stores to manage in
    ```
 
 3. **Configure environment**
-   - Copy `.env` file and update settings if needed
+   - Create a `.env` file based on `.env.example`:
+     ```bash
+     cp .env.example .env
+     ```
+   - Update the `JWT_SECRET` with a secure random string
    - Default configuration is ready for development
 
 4. **Start the application**
@@ -71,6 +75,38 @@ A comprehensive web application designed for large wholesale stores to manage in
    - Default credentials:
      - Username: `admin`
      - Password: `admin123`
+
+## Deployment
+
+### Vercel Deployment
+
+This application is configured for easy deployment to Vercel:
+
+1. **Push your code to GitHub**
+
+2. **Import to Vercel**
+   - Go to [Vercel](https://vercel.com)
+   - Import your GitHub repository
+   - Vercel will auto-detect the Node.js project
+
+3. **Configure Environment Variables**
+   - In Vercel dashboard, go to Project Settings → Environment Variables
+   - Add the following required variable:
+     - `JWT_SECRET`: A secure random string (generate using `openssl rand -base64 32`)
+   - Optional variables:
+     - `PORT`: Will be set automatically by Vercel
+     - `NODE_ENV`: Set to `production`
+
+4. **Deploy**
+   - Click "Deploy"
+   - Vercel will build and deploy your application
+   - Your app will be available at `your-project.vercel.app`
+
+**Important Notes:**
+- The `vercel.json` configuration ensures API routes are properly handled
+- All API responses return JSON with proper content-type headers
+- Error handling is optimized for production deployment
+- SQLite database will be created on first run (consider upgrading to a persistent database for production)
 
 ## Usage Guide
 
