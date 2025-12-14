@@ -16,16 +16,8 @@
       "dest": "server.js"
     },
     {
-      "src": "/css/(.*)",
-      "dest": "public/css/$1"
-    },
-    {
-      "src": "/js/(.*)",
-      "dest": "public/js/$1"
-    },
-    {
-      "src": "/fontawesome/(.*)",
-      "dest": "public/fontawesome/$1"
+      "src": "/(css|js|fontawesome)/(.*)",
+      "dest": "public/$1/$2"
     },
     {
       "src": "/(.*\\.(css|js|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",

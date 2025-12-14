@@ -40,7 +40,8 @@ git push origin main
 1. **Frontend**: Now checks if response is JSON before parsing
 2. **Backend**: All API routes return JSON (no more HTML error pages)
 3. **Security**: JWT_SECRET is required and validated at startup
-4. **Routing**: Proper Vercel configuration in `vercel.json`
+4. **Static Files**: Properly configured to serve CSS, JS, and fonts from `public` directory
+5. **Routing**: Proper Vercel configuration in `vercel.json` with explicit static file routes
 
 ## 📝 After Deployment
 
@@ -70,6 +71,10 @@ Currently using SQLite which is **NOT persistent** on Vercel. Your data will be 
 ### Error: "Server configuration error"
 **Cause:** JWT_SECRET not set in Vercel  
 **Fix:** Go to Vercel → Settings → Environment Variables → Add JWT_SECRET
+
+### Error: Page shows only text without styling
+**Cause:** Static files (CSS, JS, fonts) not loading properly  
+**Fix:** This has been fixed in the latest update. Redeploy the application (Vercel → Deployments → Redeploy)
 
 ### Error: Still getting JSON parsing errors
 **Fix:** Redeploy the application (Vercel → Deployments → Redeploy)
