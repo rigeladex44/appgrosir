@@ -28,9 +28,28 @@ app.use('/api/attendance', apiLimiter, require('./server/routes/attendance'));
 app.use('/api/dashboard', apiLimiter, require('./server/routes/dashboard'));
 app.use('/api/users', apiLimiter, require('./server/routes/users'));
 
+// API 404 handler - must come after all API routes
+app.use('/api', (req, res, next) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 // Serve frontend - catch-all route for SPA
-app.get('/', (req, res) => {
+app.use((req, res, next) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Global error handler for API routes
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  
+  // If request is to API, return JSON error
+  if (req.path.startsWith('/api/')) {
+    res.status(err.status || 500).json({ 
+      error: err.message || 'Internal server error' 
+    });
+  } else {
+    next(err);
+  }
 });
 
 app.listen(PORT, () => {

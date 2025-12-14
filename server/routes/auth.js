@@ -8,6 +8,9 @@ const db = require('../config/database');
 router.post('/login', (req, res) => {
   const { username, password } = req.body;
 
+  // Ensure we always return JSON
+  res.setHeader('Content-Type', 'application/json');
+
   db.get('SELECT * FROM users WHERE username = ?', [username], async (err, user) => {
     if (err) {
       return res.status(500).json({ error: 'Database error' });
@@ -22,9 +25,12 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
+    // Use default JWT secret if not set (for development only)
+    const jwtSecret = process.env.JWT_SECRET || 'default-secret-change-in-production';
+
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
-      process.env.JWT_SECRET,
+      jwtSecret,
       { expiresIn: '24h' }
     );
 
@@ -43,6 +49,9 @@ router.post('/login', (req, res) => {
 // Register (requires authentication)
 router.post('/register', (req, res) => {
   const { username, password, full_name, role, email, phone } = req.body;
+
+  // Ensure we always return JSON
+  res.setHeader('Content-Type', 'application/json');
 
   bcrypt.hash(password, 10, (err, hash) => {
     if (err) {
