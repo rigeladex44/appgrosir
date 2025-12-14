@@ -8,16 +8,7 @@ const dbPath = isVercel
   ? '/tmp/database.db'
   : path.join(__dirname, '../../database.db');
 
-// Ensure directory exists
-if (isVercel) {
-  try {
-    if (!fs.existsSync('/tmp')) {
-      fs.mkdirSync('/tmp', { recursive: true });
-    }
-  } catch (err) {
-    console.error('Error creating tmp directory:', err);
-  }
-}
+// Note: /tmp directory exists by default in serverless environments
 
 let db = null;
 let initializationError = null;
@@ -34,12 +25,24 @@ try {
 } catch (err) {
   console.error('Failed to create database connection:', err);
   initializationError = err;
-  // Create a dummy db object that will throw errors on use
+  // Create a dummy db object that returns errors via callbacks
+  const dbError = new Error('Database not initialized');
   db = {
-    run: () => { throw new Error('Database not initialized'); },
-    get: () => { throw new Error('Database not initialized'); },
-    all: () => { throw new Error('Database not initialized'); },
-    serialize: () => { throw new Error('Database not initialized'); }
+    run: (sql, params, callback) => {
+      if (typeof params === 'function') { callback = params; }
+      if (callback) callback(dbError);
+    },
+    get: (sql, params, callback) => {
+      if (typeof params === 'function') { callback = params; }
+      if (callback) callback(dbError);
+    },
+    all: (sql, params, callback) => {
+      if (typeof params === 'function') { callback = params; }
+      if (callback) callback(dbError);
+    },
+    serialize: (callback) => {
+      if (callback) callback();
+    }
   };
 }
 

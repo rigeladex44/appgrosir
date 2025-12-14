@@ -13,8 +13,26 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Middleware to check JWT_SECRET before processing API requests
+// Initialize database lazily (atomic initialization with promise)
+let dbInitPromise = null;
+
+function getDatabase() {
+  if (!dbInitPromise) {
+    dbInitPromise = Promise.resolve().then(() => {
+      try {
+        return require('./server/config/database');
+      } catch (err) {
+        console.error('Database initialization error:', err);
+        throw err;
+      }
+    });
+  }
+  return dbInitPromise;
+}
+
+// Middleware to check configuration and initialize database for API requests
 app.use('/api', (req, res, next) => {
+  // Check JWT_SECRET
   if (!process.env.JWT_SECRET) {
     console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
     return res.status(500).json({ 
@@ -22,37 +40,16 @@ app.use('/api', (req, res, next) => {
       details: 'JWT_SECRET environment variable is not configured.'
     });
   }
-  next();
-});
-
-// Initialize database lazily
-let dbInitialized = false;
-let db = null;
-
-function getDatabase() {
-  if (!dbInitialized) {
-    try {
-      db = require('./server/config/database');
-      dbInitialized = true;
-    } catch (err) {
-      console.error('Database initialization error:', err);
-      throw err;
-    }
-  }
-  return db;
-}
-
-// Ensure database is initialized for API routes
-app.use('/api', (req, res, next) => {
-  try {
-    getDatabase();
-    next();
-  } catch (err) {
-    console.error('Database error:', err);
-    return res.status(500).json({ 
-      error: 'Database connection error. Please try again later.'
+  
+  // Ensure database is initialized
+  getDatabase()
+    .then(() => next())
+    .catch((err) => {
+      console.error('Database error:', err);
+      return res.status(500).json({ 
+        error: 'Database connection error. Please try again later.'
+      });
     });
-  }
 });
 
 // Rate limiting
