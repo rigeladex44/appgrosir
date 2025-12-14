@@ -4,13 +4,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 
-// Validate required environment variables
-if (!process.env.JWT_SECRET) {
-  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
-  console.error('Please set JWT_SECRET in your .env file or environment configuration.');
-  process.exit(1);
-}
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -20,8 +13,50 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
-// Initialize database
-require('./server/config/database');
+// Initialize database lazily (atomic initialization with promise)
+let dbInitPromise = null;
+
+function getDatabase() {
+  if (!dbInitPromise) {
+    dbInitPromise = Promise.resolve().then(() => {
+      try {
+        return require('./server/config/database');
+      } catch (err) {
+        console.error('Database initialization error:', err);
+        throw err;
+      }
+    });
+  }
+  return dbInitPromise;
+}
+
+// Middleware to check configuration and initialize database for API requests
+app.use('/api', (req, res, next) => {
+  // Check JWT_SECRET
+  if (!process.env.JWT_SECRET) {
+    console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+    return res.status(500).json({ 
+      error: 'Server configuration error. Please contact administrator.',
+      details: 'JWT_SECRET environment variable is not configured.'
+    });
+  }
+  
+  // Ensure database is initialized
+  getDatabase()
+    .then(() => {
+      if (!res.headersSent) {
+        next();
+      }
+    })
+    .catch((err) => {
+      console.error('Database error:', err);
+      if (!res.headersSent) {
+        return res.status(500).json({ 
+          error: 'Database connection error. Please try again later.'
+        });
+      }
+    });
+});
 
 // Rate limiting
 const { apiLimiter, authLimiter } = require('./server/middleware/rateLimiter');

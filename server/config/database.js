@@ -1,17 +1,58 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.join(__dirname, '../../database.db');
+// For serverless environments, use /tmp for writable database
+const isVercel = process.env.VERCEL === '1';
+const dbPath = isVercel 
+  ? '/tmp/database.db'
+  : path.join(__dirname, '../../database.db');
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error connecting to database:', err);
-  } else {
-    console.log('Connected to SQLite database');
-  }
-});
+// Note: /tmp directory exists by default in serverless environments
+
+let db = null;
+let initializationError = null;
+
+try {
+  db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err);
+      initializationError = err;
+    } else {
+      console.log('Connected to SQLite database at:', dbPath);
+    }
+  });
+} catch (err) {
+  console.error('Failed to create database connection:', err);
+  initializationError = err;
+  // Create a dummy db object that returns errors via callbacks
+  const dbError = new Error('Database not initialized');
+  db = {
+    run: (sql, params, callback) => {
+      const cb = typeof params === 'function' ? params : callback;
+      if (cb) cb(dbError);
+    },
+    get: (sql, params, callback) => {
+      const cb = typeof params === 'function' ? params : callback;
+      if (cb) cb(dbError);
+    },
+    all: (sql, params, callback) => {
+      const cb = typeof params === 'function' ? params : callback;
+      if (cb) cb(dbError);
+    },
+    serialize: (callback) => {
+      // In error state, still execute serialize callback but all operations will fail
+      if (callback) callback();
+    }
+  };
+}
 
 function initializeDatabase() {
+  if (!db || initializationError) {
+    console.error('Cannot initialize database - connection failed');
+    return;
+  }
+  
   db.serialize(() => {
     // Users table
     db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -108,21 +149,30 @@ function initializeDatabase() {
   )`);
 
     // Create default admin user if not exists
-    const bcrypt = require('bcryptjs');
-    const defaultPassword = bcrypt.hashSync('admin123', 10);
-    
-    db.run(`INSERT OR IGNORE INTO users (username, password, full_name, role) 
-            VALUES ('admin', ?, 'Administrator', 'owner')`, [defaultPassword], (err) => {
-      if (err) {
-        console.error('Error creating admin user:', err);
-      } else {
-        console.log('Database initialized successfully');
-      }
-    });
+    try {
+      const bcrypt = require('bcryptjs');
+      const defaultPassword = bcrypt.hashSync('admin123', 10);
+      
+      db.run(`INSERT OR IGNORE INTO users (username, password, full_name, role) 
+              VALUES ('admin', ?, 'Administrator', 'owner')`, [defaultPassword], (err) => {
+        if (err) {
+          console.error('Error creating admin user:', err);
+        } else {
+          console.log('Database initialized successfully');
+        }
+      });
+    } catch (err) {
+      console.error('Error in database initialization:', err);
+    }
   });
 }
 
-// Initialize database when module is loaded
-initializeDatabase();
+// Initialize database when module is loaded (non-blocking)
+try {
+  initializeDatabase();
+} catch (err) {
+  console.error('Database initialization failed:', err);
+  initializationError = err;
+}
 
 module.exports = db;
