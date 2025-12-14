@@ -20,10 +20,6 @@
       "dest": "public/$1/$2"
     },
     {
-      "src": "/(.*\\.(css|js|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
-      "dest": "public/$1"
-    },
-    {
       "src": "/(.*)",
       "dest": "server.js"
     }
