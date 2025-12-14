@@ -4,6 +4,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 
+// Validate required environment variables
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+  console.error('Please set JWT_SECRET in your .env file or environment configuration.');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -28,9 +35,33 @@ app.use('/api/attendance', apiLimiter, require('./server/routes/attendance'));
 app.use('/api/dashboard', apiLimiter, require('./server/routes/dashboard'));
 app.use('/api/users', apiLimiter, require('./server/routes/users'));
 
+// API 404 handler - must come after all API routes
+app.use('/api', (req, res, next) => {
+  res.status(404).json({ error: 'API endpoint not found' });
+});
+
 // Serve frontend - catch-all route for SPA
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+app.use((req, res, next) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'), (err) => {
+    if (err) {
+      next(err);
+    }
+  });
+});
+
+// Global error handler for API routes
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  
+  // If request is to API, return JSON error
+  if (req.path.startsWith('/api/')) {
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    res.status(err.status || 500).json({ 
+      error: isDevelopment ? (err.message || 'Internal server error') : 'Internal server error'
+    });
+  } else {
+    next(err);
+  }
 });
 
 app.listen(PORT, () => {
