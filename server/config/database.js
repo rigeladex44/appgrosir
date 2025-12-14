@@ -1,17 +1,54 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
-const dbPath = path.join(__dirname, '../../database.db');
+// For serverless environments, use /tmp for writable database
+const isVercel = process.env.VERCEL === '1';
+const dbPath = isVercel 
+  ? '/tmp/database.db'
+  : path.join(__dirname, '../../database.db');
 
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) {
-    console.error('Error connecting to database:', err);
-  } else {
-    console.log('Connected to SQLite database');
+// Ensure directory exists
+if (isVercel) {
+  try {
+    if (!fs.existsSync('/tmp')) {
+      fs.mkdirSync('/tmp', { recursive: true });
+    }
+  } catch (err) {
+    console.error('Error creating tmp directory:', err);
   }
-});
+}
+
+let db = null;
+let initializationError = null;
+
+try {
+  db = new sqlite3.Database(dbPath, (err) => {
+    if (err) {
+      console.error('Error connecting to database:', err);
+      initializationError = err;
+    } else {
+      console.log('Connected to SQLite database at:', dbPath);
+    }
+  });
+} catch (err) {
+  console.error('Failed to create database connection:', err);
+  initializationError = err;
+  // Create a dummy db object that will throw errors on use
+  db = {
+    run: () => { throw new Error('Database not initialized'); },
+    get: () => { throw new Error('Database not initialized'); },
+    all: () => { throw new Error('Database not initialized'); },
+    serialize: () => { throw new Error('Database not initialized'); }
+  };
+}
 
 function initializeDatabase() {
+  if (!db || initializationError) {
+    console.error('Cannot initialize database - connection failed');
+    return;
+  }
+  
   db.serialize(() => {
     // Users table
     db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -108,21 +145,30 @@ function initializeDatabase() {
   )`);
 
     // Create default admin user if not exists
-    const bcrypt = require('bcryptjs');
-    const defaultPassword = bcrypt.hashSync('admin123', 10);
-    
-    db.run(`INSERT OR IGNORE INTO users (username, password, full_name, role) 
-            VALUES ('admin', ?, 'Administrator', 'owner')`, [defaultPassword], (err) => {
-      if (err) {
-        console.error('Error creating admin user:', err);
-      } else {
-        console.log('Database initialized successfully');
-      }
-    });
+    try {
+      const bcrypt = require('bcryptjs');
+      const defaultPassword = bcrypt.hashSync('admin123', 10);
+      
+      db.run(`INSERT OR IGNORE INTO users (username, password, full_name, role) 
+              VALUES ('admin', ?, 'Administrator', 'owner')`, [defaultPassword], (err) => {
+        if (err) {
+          console.error('Error creating admin user:', err);
+        } else {
+          console.log('Database initialized successfully');
+        }
+      });
+    } catch (err) {
+      console.error('Error in database initialization:', err);
+    }
   });
 }
 
-// Initialize database when module is loaded
-initializeDatabase();
+// Initialize database when module is loaded (non-blocking)
+try {
+  initializeDatabase();
+} catch (err) {
+  console.error('Database initialization failed:', err);
+  initializationError = err;
+}
 
 module.exports = db;
