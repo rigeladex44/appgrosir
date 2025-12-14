@@ -545,7 +545,7 @@ async function loadAttendance() {
 
 document.getElementById('check-in-card').addEventListener('click', async () => {
     try {
-        await apiCall('/attendance/check-in', { method: 'POST', body: '{}' });
+        await apiCall('/attendance/check-in', { method: 'POST', body: JSON.stringify({}) });
         alert('Checked in successfully!');
         await loadAttendance();
     } catch (error) {
@@ -555,7 +555,7 @@ document.getElementById('check-in-card').addEventListener('click', async () => {
 
 document.getElementById('check-out-card').addEventListener('click', async () => {
     try {
-        await apiCall('/attendance/check-out', { method: 'POST', body: '{}' });
+        await apiCall('/attendance/check-out', { method: 'POST', body: JSON.stringify({}) });
         alert('Checked out successfully!');
         await loadAttendance();
     } catch (error) {
@@ -636,7 +636,18 @@ if (state.token && state.user) {
     loadDashboard();
 }
 
-// Make functions globally available
+// Make functions globally available in a namespace to avoid pollution
+window.AppGrosir = {
+    showModal,
+    closeModal,
+    deleteProduct,
+    addToCart,
+    changeQuantity,
+    removeFromCart,
+    deleteUser
+};
+
+// For backwards compatibility with inline event handlers
 window.showModal = showModal;
 window.closeModal = closeModal;
 window.deleteProduct = deleteProduct;

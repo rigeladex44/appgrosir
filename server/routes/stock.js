@@ -118,6 +118,11 @@ router.post('/receive', authenticateToken, (req, res) => {
 router.post('/adjust', authenticateToken, (req, res) => {
   const { product_id, location, quantity, notes } = req.body;
 
+  // Whitelist validation for location
+  if (location !== 'warehouse' && location !== 'cashier') {
+    return res.status(400).json({ error: 'Invalid location. Must be warehouse or cashier.' });
+  }
+
   db.serialize(() => {
     db.run('BEGIN TRANSACTION');
 

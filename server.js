@@ -16,14 +16,17 @@ app.use(express.static('public'));
 // Initialize database
 require('./server/config/database');
 
-// Routes
-app.use('/api/auth', require('./server/routes/auth'));
-app.use('/api/products', require('./server/routes/products'));
-app.use('/api/stock', require('./server/routes/stock'));
-app.use('/api/sales', require('./server/routes/sales'));
-app.use('/api/attendance', require('./server/routes/attendance'));
-app.use('/api/dashboard', require('./server/routes/dashboard'));
-app.use('/api/users', require('./server/routes/users'));
+// Rate limiting
+const { apiLimiter, authLimiter } = require('./server/middleware/rateLimiter');
+
+// Routes with rate limiting
+app.use('/api/auth', authLimiter, require('./server/routes/auth'));
+app.use('/api/products', apiLimiter, require('./server/routes/products'));
+app.use('/api/stock', apiLimiter, require('./server/routes/stock'));
+app.use('/api/sales', apiLimiter, require('./server/routes/sales'));
+app.use('/api/attendance', apiLimiter, require('./server/routes/attendance'));
+app.use('/api/dashboard', apiLimiter, require('./server/routes/dashboard'));
+app.use('/api/users', apiLimiter, require('./server/routes/users'));
 
 // Serve frontend - catch-all route for SPA
 app.get('/', (req, res) => {

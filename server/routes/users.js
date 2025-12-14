@@ -57,12 +57,16 @@ router.put('/:id', authenticateToken, authorizeRoles('manager', 'owner'), (req, 
 router.put('/:id/password', authenticateToken, async (req, res) => {
   const { current_password, new_password } = req.body;
 
-  // Only allow users to change their own password or managers/owners to change any
-  if (req.user.id !== parseInt(req.params.id) && !['manager', 'owner'].includes(req.user.role)) {
-    return res.status(403).json({ error: 'Access denied' });
+  // Only allow users to change their own password, or owner to change any password
+  // Managers can only change their own password for security
+  if (req.user.id !== parseInt(req.params.id)) {
+    // Only owners can change other users' passwords
+    if (req.user.role !== 'owner') {
+      return res.status(403).json({ error: 'Access denied. Only owners can change other users passwords.' });
+    }
   }
 
-  // If changing own password, verify current password
+  // If changing own password, always verify current password
   if (req.user.id === parseInt(req.params.id)) {
     db.get('SELECT password FROM users WHERE id = ?', [req.params.id], async (err, user) => {
       if (err || !user) {
@@ -87,18 +91,33 @@ router.put('/:id/password', authenticateToken, async (req, res) => {
       );
     });
   } else {
-    // Manager/owner changing another user's password
-    const hash = await bcrypt.hash(new_password, 10);
-    db.run(
-      'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [hash, req.params.id],
-      (err) => {
-        if (err) {
-          return res.status(500).json({ error: 'Error updating password' });
-        }
-        res.json({ message: 'Password updated successfully' });
+    // Owner changing another user's password (requires current_password for owner verification)
+    db.get('SELECT password FROM users WHERE id = ?', [req.user.id], async (err, ownerUser) => {
+      if (err || !ownerUser) {
+        return res.status(404).json({ error: 'User not found' });
       }
-    );
+
+      if (!current_password) {
+        return res.status(400).json({ error: 'Current password required for verification' });
+      }
+
+      const validPassword = await bcrypt.compare(current_password, ownerUser.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Current password is incorrect' });
+      }
+
+      const hash = await bcrypt.hash(new_password, 10);
+      db.run(
+        'UPDATE users SET password = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+        [hash, req.params.id],
+        (err) => {
+          if (err) {
+            return res.status(500).json({ error: 'Error updating password' });
+          }
+          res.json({ message: 'Password updated successfully' });
+        }
+      );
+    });
   }
 });
 

@@ -85,18 +85,29 @@ router.post('/', authenticateToken, (req, res) => {
         }
 
         const saleId = this.lastID;
-        let completed = 0;
-        let hasError = false;
 
-        items.forEach((item) => {
+        // Process items sequentially using db.serialize to avoid race conditions
+        let itemIndex = 0;
+        const processNextItem = () => {
+          if (itemIndex >= items.length) {
+            db.run('COMMIT');
+            return res.json({
+              message: 'Sale completed successfully',
+              sale_id: saleId,
+              invoice_number: invoiceNumber,
+              total_amount: totalAmount
+            });
+          }
+
+          const item = items[itemIndex];
+          
           // Insert sale item
           db.run(
             `INSERT INTO sales_items (sale_id, product_id, quantity, unit_price, subtotal)
              VALUES (?, ?, ?, ?, ?)`,
             [saleId, item.product_id, item.quantity, item.unit_price, item.subtotal],
             (err) => {
-              if (err && !hasError) {
-                hasError = true;
+              if (err) {
                 db.run('ROLLBACK');
                 return res.status(500).json({ error: 'Error creating sale item' });
               }
@@ -108,8 +119,7 @@ router.post('/', authenticateToken, (req, res) => {
                  WHERE id = ?`,
                 [item.quantity, item.product_id],
                 (err) => {
-                  if (err && !hasError) {
-                    hasError = true;
+                  if (err) {
                     db.run('ROLLBACK');
                     return res.status(500).json({ error: 'Error updating stock' });
                   }
@@ -120,29 +130,22 @@ router.post('/', authenticateToken, (req, res) => {
                      VALUES (?, 'out', 'cashier', 'customer', ?, ?, ?)`,
                     [item.product_id, item.quantity, invoiceNumber, req.user.id],
                     (err) => {
-                      if (err && !hasError) {
-                        hasError = true;
+                      if (err) {
                         db.run('ROLLBACK');
                         return res.status(500).json({ error: 'Error recording movement' });
                       }
 
-                      completed++;
-                      if (completed === items.length && !hasError) {
-                        db.run('COMMIT');
-                        res.json({
-                          message: 'Sale completed successfully',
-                          sale_id: saleId,
-                          invoice_number: invoiceNumber,
-                          total_amount: totalAmount
-                        });
-                      }
+                      itemIndex++;
+                      processNextItem();
                     }
                   );
                 }
               );
             }
           );
-        });
+        };
+
+        processNextItem();
       }
     );
   });
