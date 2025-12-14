@@ -25,12 +25,6 @@ router.post('/login', (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Ensure JWT_SECRET is configured
-    if (!process.env.JWT_SECRET) {
-      console.error('JWT_SECRET is not configured! Please set it in environment variables.');
-      return res.status(500).json({ error: 'Server configuration error' });
-    }
-
     const token = jwt.sign(
       { id: user.id, username: user.username, role: user.role },
       process.env.JWT_SECRET,

@@ -52,10 +52,11 @@ async function apiCall(endpoint, options = {}) {
         } else {
             // If not JSON, get text to provide better error message
             const text = await response.text();
+            const preview = text.substring(0, 100);
             if (!response.ok) {
                 throw new Error(`Server error: ${response.status} ${response.statusText}`);
             }
-            throw new Error('Server returned non-JSON response');
+            throw new Error(`Server returned non-JSON response: ${preview}${text.length > 100 ? '...' : ''}`);
         }
 
         if (!response.ok) {

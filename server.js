@@ -4,6 +4,13 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
 
+// Validate required environment variables
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL ERROR: JWT_SECRET is not defined in environment variables.');
+  console.error('Please set JWT_SECRET in your .env file or environment configuration.');
+  process.exit(1);
+}
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
