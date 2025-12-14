@@ -1,0 +1,31 @@
+{
+  "name": "appgrosir",
+  "version": "1.0.0",
+  "description": "Wholesale Management System - Comprehensive solution for managing inventory, sales, attendance and profit/loss",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "wholesale",
+    "inventory",
+    "pos",
+    "warehouse",
+    "attendance",
+    "management"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "body-parser": "^2.2.1",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "express-rate-limit": "^7.4.1",
+    "jsonwebtoken": "^9.0.3",
+    "sqlite3": "^5.1.7"
+  }
+}

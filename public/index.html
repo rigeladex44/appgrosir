@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AppGrosir - Wholesale Management System</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Login Page -->
+    <div id="login-page" class="page active">
+        <div class="login-container">
+            <div class="login-card">
+                <div class="login-header">
+                    <i class="fas fa-store"></i>
+                    <h1>AppGrosir</h1>
+                    <p>Wholesale Management System</p>
+                </div>
+                <form id="login-form" class="login-form">
+                    <div class="form-group">
+                        <label for="username">
+                            <i class="fas fa-user"></i> Username
+                        </label>
+                        <input type="text" id="username" name="username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">
+                            <i class="fas fa-lock"></i> Password
+                        </label>
+                        <input type="password" id="password" name="password" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Login
+                    </button>
+                    <div id="login-error" class="error-message"></div>
+                </form>
+                <div class="login-footer">
+                    <p>Default credentials: admin / admin123</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="app" class="page">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-store"></i>
+                <span>AppGrosir</span>
+                <button class="sidebar-toggle" id="sidebar-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-page="dashboard">
+                    <i class="fas fa-dashboard"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#products" class="nav-item" data-page="products">
+                    <i class="fas fa-box"></i>
+                    <span>Products</span>
+                </a>
+                <a href="#stock" class="nav-item" data-page="stock">
+                    <i class="fas fa-warehouse"></i>
+                    <span>Stock Management</span>
+                </a>
+                <a href="#sales" class="nav-item" data-page="sales">
+                    <i class="fas fa-cash-register"></i>
+                    <span>Sales / POS</span>
+                </a>
+                <a href="#reports" class="nav-item" data-page="reports">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Profit & Loss</span>
+                </a>
+                <a href="#attendance" class="nav-item" data-page="attendance">
+                    <i class="fas fa-clock"></i>
+                    <span>Attendance</span>
+                </a>
+                <a href="#users" class="nav-item" data-page="users">
+                    <i class="fas fa-users"></i>
+                    <span>Users</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="user-info">
+                    <i class="fas fa-user-circle"></i>
+                    <div>
+                        <div id="user-name">Admin</div>
+                        <div id="user-role" class="user-role">Owner</div>
+                    </div>
+                </div>
+                <button id="logout-btn" class="btn btn-logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="mobile-header">
+                <button class="mobile-menu-toggle" id="mobile-menu-toggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="mobile-logo">
+                    <i class="fas fa-store"></i> AppGrosir
+                </div>
+                <div></div>
+            </div>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="content-page active">
+                <div class="page-header">
+                    <h2><i class="fas fa-dashboard"></i> Dashboard</h2>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon bg-blue">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="stat-products">0</div>
+                            <div class="stat-label">Total Products</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-orange">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="stat-low-stock">0</div>
+                            <div class="stat-label">Low Stock Alert</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-green">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="stat-today-sales">$0</div>
+                            <div class="stat-label">Today's Sales</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-icon bg-purple">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <div class="stat-value" id="stat-attendance">0</div>
+                            <div class="stat-label">Today's Attendance</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-chart-line"></i> Monthly Sales</h3>
+                        <div class="metric-display">
+                            <div class="metric-value" id="month-sales-total">$0</div>
+                            <div class="metric-label" id="month-sales-count">0 transactions</div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h3><i class="fas fa-activity"></i> Recent Activities</h3>
+                        <div id="recent-activities" class="activity-list">
+                            <p class="text-muted">Loading...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Page -->
+            <div id="products-page" class="content-page">
+                <div class="page-header">
+                    <h2><i class="fas fa-box"></i> Products</h2>
+                    <button class="btn btn-primary" id="add-product-btn">
+                        <i class="fas fa-plus"></i> Add Product
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Name</th>
+                                    <th>Category</th>
+                                    <th>Purchase Price</th>
+                                    <th>Selling Price</th>
+                                    <th>Warehouse</th>
+                                    <th>Cashier</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="products-table-body">
+                                <tr>
+                                    <td colspan="8" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stock Management Page -->
+            <div id="stock-page" class="content-page">
+                <div class="page-header">
+                    <h2><i class="fas fa-warehouse"></i> Stock Management</h2>
+                </div>
+
+                <div class="action-cards">
+                    <div class="action-card" onclick="showModal('receive-stock-modal')">
+                        <i class="fas fa-truck"></i>
+                        <h3>Receive Stock</h3>
+                        <p>Add incoming stock to warehouse</p>
+                    </div>
+                    <div class="action-card" onclick="showModal('transfer-stock-modal')">
+                        <i class="fas fa-exchange-alt"></i>
+                        <h3>Transfer Stock</h3>
+                        <p>Warehouse → Cashier</p>
+                    </div>
+                    <div class="action-card" onclick="showModal('adjust-stock-modal')">
+                        <i class="fas fa-edit"></i>
+                        <h3>Adjust Stock</h3>
+                        <p>Manual stock adjustment</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-history"></i> Recent Stock Movements</h3>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Product</th>
+                                    <th>Type</th>
+                                    <th>From</th>
+                                    <th>To</th>
+                                    <th>Quantity</th>
+                                    <th>User</th>
+                                </tr>
+                            </thead>
+                            <tbody id="stock-movements-table-body">
+                                <tr>
+                                    <td colspan="7" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sales/POS Page -->
+            <div id="sales-page" class="content-page">
+                <div class="page-header">
+                    <h2><i class="fas fa-cash-register"></i> Point of Sale</h2>
+                </div>
+
+                <div class="pos-container">
+                    <div class="pos-products">
+                        <div class="search-box">
+                            <input type="text" id="product-search" placeholder="Search products...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div id="pos-products-grid" class="products-grid">
+                            <p class="text-muted">Loading products...</p>
+                        </div>
+                    </div>
+
+                    <div class="pos-cart">
+                        <h3>Cart</h3>
+                        <div id="cart-items" class="cart-items">
+                            <p class="text-muted">Cart is empty</p>
+                        </div>
+                        <div class="cart-summary">
+                            <div class="cart-total">
+                                <span>Total:</span>
+                                <span id="cart-total">$0.00</span>
+                            </div>
+                            <div class="form-group">
+                                <label>Payment Method</label>
+                                <select id="payment-method">
+                                    <option value="cash">Cash</option>
+                                    <option value="card">Card</option>
+                                    <option value="transfer">Transfer</option>
+                                    <option value="credit">Credit</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Customer Name (Optional)</label>
+                                <input type="text" id="customer-name">
+                            </div>
+                            <button class="btn btn-primary btn-block" id="complete-sale-btn">
+                                <i class="fas fa-check"></i> Complete Sale
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Page -->
+            <div id="reports-page" class="content-page">
+                <div class="page-header">
+                    <h2><i class="fas fa-chart-line"></i> Profit & Loss Report</h2>
+                </div>
+
+                <div class="card">
+                    <div class="date-filter">
+                        <label>Start Date:</label>
+                        <input type="date" id="report-start-date">
+                        <label>End Date:</label>
+                        <input type="date" id="report-end-date">
+                        <button class="btn btn-primary" id="generate-report-btn">
+                            <i class="fas fa-file-chart"></i> Generate Report
+                        </button>
+                    </div>
+
+                    <div id="profit-loss-report" class="report-content">
+                        <div class="report-grid">
+                            <div class="report-item">
+                                <div class="report-label">Revenue</div>
+                                <div class="report-value text-blue" id="report-revenue">$0.00</div>
+                            </div>
+                            <div class="report-item">
+                                <div class="report-label">Cost of Goods</div>
+                                <div class="report-value text-orange" id="report-cost">$0.00</div>
+                            </div>
+                            <div class="report-item">
+                                <div class="report-label">Gross Profit</div>
+                                <div class="report-value text-green" id="report-gross-profit">$0.00</div>
+                            </div>
+                            <div class="report-item">
+                                <div class="report-label">Expenses</div>
+                                <div class="report-value text-red" id="report-expenses">$0.00</div>
+                            </div>
+                            <div class="report-item highlight">
+                                <div class="report-label">Net Profit</div>
+                                <div class="report-value" id="report-net-profit">$0.00</div>
+                            </div>
+                            <div class="report-item">
+                                <div class="report-label">Profit Margin</div>
+                                <div class="report-value" id="report-margin">0%</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Attendance Page -->
+            <div id="attendance-page" class="content-page">
+                <div class="page-header">
+                    <h2><i class="fas fa-clock"></i> Attendance</h2>
+                </div>
+
+                <div class="action-cards">
+                    <div class="action-card" id="check-in-card">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <h3>Check In</h3>
+                        <p>Record your arrival</p>
+                    </div>
+                    <div class="action-card" id="check-out-card">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <h3>Check Out</h3>
+                        <p>Record your departure</p>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3><i class="fas fa-users"></i> Today's Attendance</h3>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Employee</th>
+                                    <th>Role</th>
+                                    <th>Check In</th>
+                                    <th>Check Out</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-table-body">
+                                <tr>
+                                    <td colspan="5" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Page -->
+            <div id="users-page" class="content-page">
+                <div class="page-header">
+                    <h2><i class="fas fa-users"></i> User Management</h2>
+                    <button class="btn btn-primary" id="add-user-btn">
+                        <i class="fas fa-user-plus"></i> Add User
+                    </button>
+                </div>
+
+                <div class="card">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Full Name</th>
+                                    <th>Role</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr>
+                                    <td colspan="6" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="add-product-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Product</h3>
+                <button class="modal-close" onclick="closeModal('add-product-modal')">&times;</button>
+            </div>
+            <form id="add-product-form">
+                <div class="form-group">
+                    <label>SKU *</label>
+                    <input type="text" name="sku" required>
+                </div>
+                <div class="form-group">
+                    <label>Name *</label>
+                    <input type="text" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea name="description"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Category</label>
+                        <input type="text" name="category">
+                    </div>
+                    <div class="form-group">
+                        <label>Unit *</label>
+                        <input type="text" name="unit" placeholder="pcs, kg, etc." required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Purchase Price *</label>
+                        <input type="number" name="purchase_price" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Selling Price *</label>
+                        <input type="number" name="selling_price" step="0.01" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Min Stock Alert</label>
+                    <input type="number" name="min_stock_alert" value="10">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-product-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Product</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="receive-stock-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Receive Stock</h3>
+                <button class="modal-close" onclick="closeModal('receive-stock-modal')">&times;</button>
+            </div>
+            <form id="receive-stock-form">
+                <div class="form-group">
+                    <label>Product *</label>
+                    <select name="product_id" id="receive-product-select" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" name="quantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Reference (PO Number, etc.)</label>
+                    <input type="text" name="reference">
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('receive-stock-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Receive Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="transfer-stock-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Transfer Stock (Warehouse → Cashier)</h3>
+                <button class="modal-close" onclick="closeModal('transfer-stock-modal')">&times;</button>
+            </div>
+            <form id="transfer-stock-form">
+                <div class="form-group">
+                    <label>Product *</label>
+                    <select name="product_id" id="transfer-product-select" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Quantity *</label>
+                    <input type="number" name="quantity" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea name="notes"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('transfer-stock-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Transfer Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="adjust-stock-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Adjust Stock</h3>
+                <button class="modal-close" onclick="closeModal('adjust-stock-modal')">&times;</button>
+            </div>
+            <form id="adjust-stock-form">
+                <div class="form-group">
+                    <label>Product *</label>
+                    <select name="product_id" id="adjust-product-select" required>
+                        <option value="">Select Product</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Location *</label>
+                    <select name="location" required>
+                        <option value="warehouse">Warehouse</option>
+                        <option value="cashier">Cashier</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>New Quantity *</label>
+                    <input type="number" name="quantity" min="0" required>
+                </div>
+                <div class="form-group">
+                    <label>Reason *</label>
+                    <textarea name="notes" required></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('adjust-stock-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Adjust Stock</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="add-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add User</h3>
+                <button class="modal-close" onclick="closeModal('add-user-modal')">&times;</button>
+            </div>
+            <form id="add-user-form">
+                <div class="form-group">
+                    <label>Username *</label>
+                    <input type="text" name="username" required>
+                </div>
+                <div class="form-group">
+                    <label>Password *</label>
+                    <input type="password" name="password" required>
+                </div>
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" name="full_name" required>
+                </div>
+                <div class="form-group">
+                    <label>Role *</label>
+                    <select name="role" required>
+                        <option value="staff">Staff</option>
+                        <option value="cashier">Cashier</option>
+                        <option value="manager">Manager</option>
+                        <option value="owner">Owner</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="tel" name="phone">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('add-user-modal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>
